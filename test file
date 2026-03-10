@@ -1,0 +1,106 @@
+local Players = game:GetService("Players")
+local lp = Players.LocalPlayer
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+-- [[ SETTINGS ]] --
+_G.ClassmateX_Speed = 16
+_G.ClassmateX_Jump = 50
+_G.ClassmateX_Noclip = false
+_G.ClassmateX_InfJump = false
+_G.ClassmateX_ESP = false
+_G.ClassmateX_AutoDuel = false
+_G.ClassmateX_AutoWin = false
+_G.ClassmateX_InstaTake = false
+
+-- [[ GUI GENERATION ]] --
+local ScreenGui = Instance.new("ScreenGui", lp:WaitForChild("PlayerGui"))
+ScreenGui.Name = "ClassmateX_V3"
+ScreenGui.ResetOnSpawn = false
+
+local Main = Instance.new("Frame", ScreenGui)
+Main.Size = UDim2.new(0, 230, 0, 300)
+Main.Position = UDim2.new(0.5, -115, 0.4, 0)
+Main.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Main.BorderSizePixel = 0
+Main.Visible = true
+Main.Active = true
+Main.Draggable = true
+Instance.new("UICorner", Main)
+
+local Title = Instance.new("TextLabel", Main)
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Text = "CLASSMATE X V3 💀"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.Font = Enum.Font.FredokaOne
+Title.TextScaled = true
+Title.BackgroundTransparency = 1
+
+-- SCROLLING CONTAINER
+local Scroll = Instance.new("ScrollingFrame", Main)
+Scroll.Size = UDim2.new(1, -10, 1, -50)
+Scroll.Position = UDim2.new(0, 5, 0, 45)
+Scroll.BackgroundTransparency = 1
+Scroll.CanvasSize = UDim2.new(0, 0, 0, 450) -- Increased for sliding
+Scroll.ScrollBarThickness = 2
+
+local UIList = Instance.new("UIListLayout", Scroll)
+UIList.Padding = UDim.new(0, 8)
+UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+-- BUTTON FACTORY
+local function CreateToggle(name, globalVar)
+    local btn = Instance.new("TextButton", Scroll)
+    btn.Size = UDim2.new(0.9, 0, 0, 45)
+    btn.Text = name
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 14
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.BackgroundColor3 = Color3.fromRGB(150, 0, 0) -- Start Red
+    local corner = Instance.new("UICorner", btn)
+
+    local function UpdateColor()
+        if _G[globalVar] then
+            btn.BackgroundColor3 = Color3.fromRGB(0, 180, 0) -- Green
+        else
+            btn.BackgroundColor3 = Color3.fromRGB(150, 0, 0) -- Red
+        end
+    end
+
+    btn.MouseButton1Click:Connect(function()
+        _G[globalVar] = not _G[globalVar]
+        UpdateColor()
+    end)
+    
+    return btn
+end
+
+-- Create the Toggles
+CreateToggle("BRAINROT ESP", "ClassmateX_ESP")
+CreateToggle("INSTANT TAKE (E)", "ClassmateX_InstaTake")
+CreateToggle("AUTO DUEL (ACCEPT)", "ClassmateX_AutoDuel")
+CreateToggle("AUTO WIN (SPAM)", "ClassmateX_AutoWin")
+CreateToggle("NOCLIP", "ClassmateX_Noclip")
+CreateToggle("INF JUMP", "ClassmateX_InfJump")
+
+-- [[ THE HARDCORE LOGIC ]] --
+task.spawn(function()
+    while task.wait() do
+        local char = lp.Character
+        if not char then continue end
+
+        pcall(function()
+            -- 1. INSTANT TAKE (Force Fire)
+            if _G.ClassmateX_InstaTake then
+                for _, p in pairs(workspace:GetDescendants()) do
+                    if p:IsA("ProximityPrompt") then
+                        p.HoldDuration = 0
+                        p:InputHoldBegin()
+                        p:InputHoldEnd() -- Fires the prompt instantly
+                    end
+                end
+            end
+
+            -- 2. AUTO DUEL & WIN (High Frequency)
+            if _G.ClassmateX_AutoDuel or _G.ClassmateX_Auto
