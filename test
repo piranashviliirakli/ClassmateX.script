@@ -1,0 +1,145 @@
+local Players = game:GetService("Players")
+local lp = Players.LocalPlayer
+local UIS = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+-- [[ SETTINGS ]] --
+_G.ClassmateX_Speed = 16
+_G.ClassmateX_Noclip = false
+_G.ClassmateX_InfJump = false
+_G.ClassmateX_AutoDuel = false
+_G.ClassmateX_AutoWin = false
+_G.ClassmateX_InstaTake = false
+_G.ClassmateX_AutoLock = false -- NEW BRAINROT FEATURE
+
+-- [[ GUI SETUP ]] --
+local ScreenGui = Instance.new("ScreenGui", lp:WaitForChild("PlayerGui"))
+ScreenGui.Name = "ClassmateX_Official"
+ScreenGui.ResetOnSpawn = false
+
+local ToggleBtn = Instance.new("TextButton", ScreenGui)
+ToggleBtn.Size = UDim2.new(0, 50, 0, 50)
+ToggleBtn.Position = UDim2.new(0, 20, 0.5, 0)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 19, 98)
+ToggleBtn.Text = "😎"
+ToggleBtn.TextSize = 30
+ToggleBtn.Draggable = true 
+Instance.new("UICorner", ToggleBtn)
+
+local Main = Instance.new("Frame", ScreenGui)
+Main.Size = UDim2.new(0, 220, 0, 380)
+Main.Position = UDim2.new(0.5, -110, 0.3, 0)
+Main.BackgroundColor3 = Color3.fromRGB(0, 19, 98)
+Main.Visible = false
+Main.Active = true
+Main.Draggable = true 
+Instance.new("UICorner", Main)
+
+ToggleBtn.MouseButton1Click:Connect(function() Main.Visible = not Main.Visible end)
+
+local Title = Instance.new("TextLabel", Main)
+Title.Size = UDim2.new(1, 0, 0, 45)
+Title.BackgroundTransparency = 1
+Title.Text = "Classmate X"
+Title.TextColor3 = Color3.fromRGB(255, 0, 0)
+Title.Font = Enum.Font.FredokaOne
+Title.TextScaled = true
+
+-- [[ SCROLLING MENU ]] --
+local Scroll = Instance.new("ScrollingFrame", Main)
+Scroll.Size = UDim2.new(1, -10, 1, -55)
+Scroll.Position = UDim2.new(0, 5, 0, 50)
+Scroll.BackgroundTransparency = 1
+Scroll.CanvasSize = UDim2.new(0, 0, 0, 480) -- Increased for more options
+Scroll.ScrollBarThickness = 3
+
+local UIList = Instance.new("UIListLayout", Scroll)
+UIList.Padding = UDim.new(0, 5)
+UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+local function CreateButton(name, globalVar)
+    local btn = Instance.new("TextButton", Scroll)
+    btn.Size = UDim2.new(0.9, 0, 0, 35)
+    btn.Text = "X " .. name .. ": OFF"
+    btn.TextScaled = true
+    btn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    Instance.new("UICorner", btn)
+
+    btn.MouseButton1Click:Connect(function()
+        _G[globalVar] = not _G[globalVar]
+        btn.BackgroundColor3 = _G[globalVar] and Color3.fromRGB(0, 180, 0) or Color3.fromRGB(200, 0, 0)
+        btn.Text = "X " .. name .. ": " .. (_G[globalVar] and "ON" or "OFF")
+    end)
+end
+
+-- Create the Buttons
+CreateButton("AutoLock", "ClassmateX_AutoLock")
+CreateButton("AutoWin", "ClassmateX_AutoWin")
+CreateButton("AutoDuel", "ClassmateX_AutoDuel")
+CreateButton("InstaTake", "ClassmateX_InstaTake")
+CreateButton("Noclip", "ClassmateX_Noclip")
+CreateButton("InfJump", "ClassmateX_InfJump")
+
+-- [[ MAIN BRAINROT LOGIC ]] --
+task.spawn(function()
+    while task.wait() do
+        pcall(function()
+            local char = lp.Character
+            if not char then return end
+
+            -- 1. AUTO LOCK BASE (Closes Doors/Gates)
+            if _G.ClassmateX_AutoLock then
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    -- Checks for Prompts that say "Close" or "Lock"
+                    if obj:IsA("ProximityPrompt") then
+                        local txt = obj.ActionText:lower()
+                        if txt:find("lock") or txt:find("close") or txt:find("shut") then
+                            fireproximityprompt(obj)
+                        end
+                    end
+                    -- Checks for ClickDetectors in the base
+                    if obj:IsA("ClickDetector") and (obj.Parent.Name:lower():find("door") or obj.Parent.Name:lower():find("gate")) then
+                        fireclickdetector(obj)
+                    end
+                end
+            end
+
+            -- 2. INSTA TAKE (Instant E)
+            if _G.ClassmateX_InstaTake then
+                for _, p in pairs(workspace:GetDescendants()) do
+                    if p:IsA("ProximityPrompt") then
+                        p.HoldDuration = 0
+                        fireproximityprompt(p)
+                    end
+                end
+            end
+
+            -- 3. AUTO DUEL & WIN
+            if _G.ClassmateX_AutoDuel or _G.ClassmateX_AutoWin then
+                for _, g in pairs(lp.PlayerGui:GetDescendants()) do
+                    if g:IsA("TextButton") and g.Visible and (g.Text:lower():find("click") or g.Text:lower():find("fight") or g.Text:lower():find("duel")) then
+                        firesignal(g.MouseButton1Click)
+                    end
+                end
+            end
+
+            -- 4. MOVEMENT
+            if char:FindFirstChild("Humanoid") then
+                char.Humanoid.WalkSpeed = _G.ClassmateX_Speed
+                if _G.ClassmateX_Noclip then
+                    for _, v in pairs(char:GetDescendants()) do
+                        if v:IsA("BasePart") then v.CanCollide = false end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+-- Inf Jump Fix
+UIS.JumpRequest:Connect(function()
+    if _G.ClassmateX_InfJump and lp.Character:FindFirstChildOfClass("Humanoid") then
+        lp.Character.Humanoid:ChangeState("Jumping")
+    end
+end)
